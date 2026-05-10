@@ -465,7 +465,8 @@ button{font-family:inherit;cursor:pointer;transition:0.2s;}
     <button class="yp-qbtn" onclick="ypQuick('माझी performance कशी आहे?')">📊 Performance</button>
   </div>
   <div class="yp-input-row">
-    <input type="text" class="yp-input" id="ypInput" placeholder="प्रश्न विचारा..." onkeydown="if(event.key==='Enter')ypSend()">
+    <button id="ypMicBtn" onclick="toggleYpMic()" title="आवाजाने विचारा" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:white;font-size:16px;cursor:pointer;flex-shrink:0;transition:0.2s;">🎤</button>
+    <input type="text" class="yp-input" id="ypInput" placeholder="बोला किंवा टाइप करा..." onkeydown="if(event.key==='Enter')ypSend()">
     <button class="yp-send" onclick="ypSend()">➤</button>
   </div>
 </div>
@@ -502,6 +503,11 @@ async function ypSend() {
   const q   = inp.value.trim();
   if (!q) return;
   inp.value = "";
+  await ypSendText(q);
+}
+
+async function ypSendText(q) {
+  if (!q) return;
   ypAddMsg(q, "user");
   ypAddTyping();
   const answer = await askYantrika(q);
