@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login | यांत्रिकी विभाग</title>
+<style>
+:root{--primary:#1e40af;--bg:#f3f4f6;--card:#fff;--border:#e5e7eb;--danger:#b91c1c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Noto Sans Devanagari",system-ui,sans-serif;background:var(--bg);padding:20px;min-height:100vh;display:flex;flex-direction:column;}
+.gov-header{text-align:center;padding:15px 20px;border-bottom:3px solid var(--primary);background:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.06);margin-bottom:24px;}
+.gov-logos{display:flex;justify-content:center;align-items:center;gap:18px;margin-bottom:12px;}
+.center-logo{width:80px;}.side-logo{width:66px;}
+.gov-subtitle{font-size:14px;margin-bottom:5px;color:#6b7280;}
+.gov-title{font-size:22px;font-weight:700;color:var(--primary);}
+.container{max-width:400px;margin:0 auto;background:var(--card);padding:28px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,0.07);}
+h3{text-align:center;color:var(--primary);margin-bottom:22px;font-size:18px;}
+label{font-weight:600;display:block;margin-bottom:6px;font-size:14px;}
+input{width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:14px;font-family:inherit;margin-bottom:14px;transition:0.2s;}
+input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(30,64,175,0.1);}
+button{width:100%;padding:12px;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:0.2s;}
+.btn-login{background:var(--primary);color:white;margin-bottom:10px;}
+.btn-login:hover{opacity:0.9;}
+.btn-login:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-back{background:#f1f5f9;color:#6b7280;border:1px solid var(--border);}
+.btn-back:hover{background:#e2e8f0;}
+.error-msg{color:var(--danger);text-align:center;margin-top:10px;font-weight:600;font-size:14px;min-height:20px;}
+</style>
+</head>
+<body>
+<div class="gov-header">
+  <div class="gov-logos">
+    <img src="left-logo.png" class="side-logo" alt="">
+    <img src="main-logo.png" class="center-logo" alt="">
+    <img src="right-logo.png" class="side-logo" alt="">
+  </div>
+  <div class="gov-subtitle">मा. कार्यकारी अभियंता यांत्रिकी विभाग (को.प्र), अलोरे अंतर्गत</div>
+  <div class="gov-title">यांत्रिकी विभाग मातीकाम माहिती प्रणाली</div>
+</div>
+
+<div class="container">
+  <h3>🔐 Admin Login</h3>
+  <label>Username</label>
+  <input type="text" id="username" placeholder="Username टाका" autocomplete="off">
+  <label>Password</label>
+  <input type="password" id="password" placeholder="Password टाका" autocomplete="off">
+  <button class="btn-login" id="loginBtn" onclick="login()">Login करा</button>
+  <button class="btn-back" onclick="window.location.href='index.html'">⬅ मुख्य पृष्ठावर जा</button>
+  <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzOhvYrDFrXe6vo7hjeMkuFH0GJ2exdLNfzy9ZyPASiCu-JcmXY7yHTxixNq29tACB5Jg/exec";
+
+if (localStorage.getItem("token")) window.location.href = "admin-dashboard.html";
+
+document.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+
+async function login() {
+  const btn      = document.getElementById("loginBtn");
+  const errorBox = document.getElementById("errorMsg");
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  errorBox.innerText = "";
+  if (!username || !password) { errorBox.innerText = "⚠️ Username आणि Password भरा"; return; }
+
+  btn.disabled = true; btn.innerText = "Login होत आहे...";
+
+  try {
+    const res  = await fetch(API_URL + "?mode=login_check", {
+      method: "POST",
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.error) { errorBox.innerText = "❌ चुकीचे Username किंवा Password"; btn.disabled = false; btn.innerText = "Login करा"; return; }
+    localStorage.setItem("token",           data.token);
+    localStorage.setItem("subdivisionCode", data.subdivisionCode);
+    localStorage.setItem("subdivisionName", data.subdivisionName);
+    localStorage.setItem("role",            data.role);
+    window.location.href = "admin-dashboard.html";
+  } catch (err) {
+    errorBox.innerText = "⚠️ Server शी संपर्क होऊ शकला नाही";
+    btn.disabled = false; btn.innerText = "Login करा";
+  }
+}
+</script>
+</body>
+</html>
