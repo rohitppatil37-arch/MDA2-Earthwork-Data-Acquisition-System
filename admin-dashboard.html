@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | यांत्रिकी विभाग</title>
+<style>
+:root{--primary:#1e40af;--pl:#2563eb;--bg:#f3f4f6;--card:#fff;--border:#e5e7eb;--danger:#b91c1c;--success:#059669;--muted:#6b7280;--amber:#d97706;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Noto Sans Devanagari",system-ui,sans-serif;background:var(--bg);min-height:100vh;}
+
+/* HEADER */
+.gov-header{text-align:center;padding:14px 20px;border-bottom:3px solid var(--primary);background:white;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.gov-logos{display:flex;justify-content:center;align-items:center;gap:18px;margin-bottom:10px;}
+.center-logo{width:80px;}.side-logo{width:66px;}
+.gov-subtitle{font-size:13px;color:var(--muted);margin-bottom:4px;}
+.gov-title{font-size:22px;font-weight:700;color:var(--primary);}
+
+/* SUB BANNER */
+.sub-banner{text-align:center;background:#eef2ff;border:1px solid #c7d2fe;padding:10px;border-radius:8px;font-weight:700;color:var(--primary);margin:16px auto;max-width:900px;font-size:15px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 16px;max-width:900px;margin:0 auto 20px;border-bottom:2px solid var(--border);}
+.tab{padding:10px 18px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit;white-space:nowrap;transition:0.15s;}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.tab:hover:not(.active){color:var(--pl);}
+
+/* CONTAINER */
+.container{max-width:900px;margin:0 auto;padding:0 16px 40px;}
+.page{display:none;}.page.active{display:block;}
+
+/* CARD */
+.card{background:var(--card);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid var(--border);margin-bottom:18px;overflow:hidden;}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.card-title{font-size:15px;font-weight:700;color:var(--primary);}
+.card-body{padding:18px;}
+
+/* REPORTS */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.report-card{border:1px solid var(--border);border-radius:10px;padding:16px;background:#f9fafb;transition:0.2s;}
+.report-card:hover{box-shadow:0 4px 14px rgba(0,0,0,0.08);transform:translateY(-1px);}
+.report-card label{font-weight:700;display:block;margin-bottom:10px;font-size:13px;color:var(--primary);}
+.period-row{display:flex;gap:8px;margin-bottom:10px;}
+.period-row input{flex:1;padding:8px;border-radius:7px;border:1px solid var(--border);font-size:12px;font-family:inherit;}
+.btn-dl{width:100%;padding:10px;border:none;border-radius:8px;font-weight:700;cursor:pointer;background:var(--primary);color:white;font-size:13px;font-family:inherit;transition:0.2s;}
+.btn-dl:hover{background:var(--pl);}
+.btn-dl:disabled{opacity:0.6;cursor:not-allowed;}
+
+/* REPORT LOADER */
+.report-loader{display:none;align-items:center;gap:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-weight:600;color:var(--primary);font-size:13px;}
+.report-loader.show{display:flex;}
+.spinner{width:18px;height:18px;border:3px solid #bfdbfe;border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* FORM ELEMENTS */
+.fl{display:block;font-size:13px;font-weight:600;color:var(--primary);margin-bottom:5px;}
+.fi{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:white;margin-bottom:12px;transition:0.2s;}
+.fi:focus{outline:none;border-color:var(--pl);box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-add{padding:10px 22px;background:var(--success);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:0.2s;margin-top:4px;}
+.btn-add:hover{opacity:0.9;}
+
+/* GPS */
+.gps-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;flex-wrap:wrap;}
+.gps-row:last-child{border-bottom:none;}
+.gps-machine{font-weight:700;font-size:13px;color:var(--primary);flex:1;min-width:160px;}
+.gps-driver{font-size:11px;color:var(--muted);}
+.gps-dash{font-size:11px;color:var(--muted);}
+.gps-inp{width:100px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;text-align:center;font-family:inherit;transition:0.2s;}
+.gps-inp:focus{outline:none;border-color:var(--pl);}
+.btn-gps-save{width:100%;padding:11px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:12px;transition:0.2s;}
+.btn-gps-save:hover{background:var(--pl);}
+.btn-gps-save:disabled{opacity:0.6;cursor:not-allowed;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:#f8fafc;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody td{padding:10px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#f9fafb;}
+
+/* BADGE */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;}
+.badge-machine{background:#eff6ff;color:var(--primary);}
+.badge-vehicle{background:#fffbeb;color:var(--amber);}
+.badge-operator{background:#f0fdf4;color:var(--success);}
+.badge-driver{background:#fff7ed;color:var(--amber);}
+
+/* DELETE BTN */
+.btn-del{padding:5px 12px;background:#fef2f2;color:var(--danger);border:1px solid #fecaca;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;}
+.btn-del:hover{background:#fee2e2;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:999;display:none;}
+.modal-bg.open{display:flex;}
+.modal{background:white;border-radius:14px;padding:24px;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+.modal h3{color:var(--danger);margin-bottom:10px;font-size:16px;}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btns button{flex:1;padding:11px;border:none;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
+.modal-cancel{background:#f1f5f9;color:var(--muted);}
+.modal-confirm{background:var(--danger);color:white;}
+
+/* TOAST */
+.toast-msg{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);padding:12px 22px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;transition:0.3s;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.15);}
+.toast-msg.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast-success{background:var(--success);color:white;}
+.toast-danger{background:var(--danger);color:white;}
+
+/* LOGOUT */
+.btn-logout{width:100%;padding:11px;background:#fef2f2;color:var(--danger);border:1px solid #fecaca;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:16px;transition:0.2s;}
+.btn-logout:hover{background:#fee2e2;}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:30px;color:var(--muted);font-size:13px;}
+
+@media(max-width:700px){
+  .report-grid{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .period-row{flex-direction:column;}
+  .gov-title{font-size:18px;}
+}
+</style>
+</head>
+<body>
+
+<!-- GOV HEADER -->
+<div class="gov-header">
+  <div class="gov-logos">
+    <img src="left-logo.png" class="side-logo" alt="">
+    <img src="main-logo.png" class="center-logo" alt="">
+    <img src="right-logo.png" class="side-logo" alt="">
+  </div>
+  <div class="gov-subtitle">मा. कार्यकारी अभियंता यांत्रिकी विभाग (को.प्र), अलोरे अंतर्गत</div>
+  <div class="gov-title">Admin Dashboard | यांत्रिकी विभाग मातीकाम माहिती प्रणाली</div>
+</div>
+
+<div class="sub-banner" id="subBanner">उपविभाग लोड होत आहे...</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('reports')"  id="t-reports">📥 Reports</button>
+  <button class="tab"        onclick="switchTab('gps')"      id="t-gps">📡 GPS Entry</button>
+  <button class="tab"        onclick="switchTab('machines')" id="t-machines">⚙️ मशीन</button>
+  <button class="tab"        onclick="switchTab('projects')" id="t-projects">🏗 प्रकल्प</button>
+  <button class="tab"        onclick="switchTab('staff')"    id="t-staff">👷 कर्मचारी</button>
+</div>
+
+<div class="container">
+
+  <!-- ── REPORTS ── -->
+  <div class="page active" id="pg-reports">
+    <div class="report-loader" id="rptLoader">
+      <div class="spinner"></div>
+      <span id="rptText">अहवाल तयार होत आहे...</span>
+    </div>
+    <div class="report-grid">
+      <div class="report-card">
+        <label>⚙️ सयंत्राच्या तास / किमी चा अहवाल</label>
+        <div class="period-row"><input type="date" id="m_from"><input type="date" id="m_to"></div>
+        <button class="btn-dl" onclick="downloadReport('machine','m')">⬇️ डाउनलोड करा</button>
+      </div>
+      <div class="report-card">
+        <label>📡 GPS अहवाल</label>
+        <div class="period-row"><input type="date" id="g_from"><input type="date" id="g_to"></div>
+        <button class="btn-dl" onclick="downloadReport('gps','g')">⬇️ डाउनलोड करा</button>
+      </div>
+      <div class="report-card">
+        <label>👷 हजेरी अहवाल</label>
+        <div class="period-row"><input type="date" id="a_from"><input type="date" id="a_to"></div>
+        <button class="btn-dl" onclick="downloadReport('attendance','a')">⬇️ डाउनलोड करा</button>
+      </div>
+      <div class="report-card">
+        <label>💰 प्रलंबित रकमेचा अहवाल</label>
+        <div class="period-row"><input type="date" id="p_from"><input type="date" id="p_to"></div>
+        <button class="btn-dl" onclick="downloadReport('pending','p')">⬇️ डाउनलोड करा</button>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">🚪 लॉगआउट</button>
+  </div>
+
+  <!-- ── GPS ── -->
+  <div class="page" id="pg-gps">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📡 GPS तास / किमी — Manual Entry</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="date" id="gpsDate" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;">
+          <button onclick="loadGPSRows()" style="padding:7px 16px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📋 लोड करा</button>
+        </div>
+      </div>
+      <div class="card-body" id="gpsBody">
+        <div class="empty-state">दिनांक निवडा आणि 'लोड करा' दाबा</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MACHINES ── -->
+  <div class="page" id="pg-machines">
+    <div class="card">
+      <div class="card-header"><div class="card-title">➕ नवीन मशीन / वाहन Add करा</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div><label class="fl">मशीन / वाहनाचे नाव *</label><input class="fi" type="text" id="nm-name" placeholder="उदा. JCB 3DX-MH12-1234"></div>
+          <div><label class="fl">Machine Type *</label><input class="fi" type="text" id="nm-type" placeholder="उदा. डोझर/एस्कॅव्हेटर"></div>
+          <div><label class="fl">Category *</label>
+            <select class="fi" id="nm-category"><option value="Machine">Machine</option><option value="Vehicle">Vehicle</option></select>
+          </div>
+          <div><label class="fl">Diesel Average *</label><input class="fi" type="number" id="nm-avg" step="0.01" placeholder="उदा. 13"></div>
+          <div><label class="fl">Use Rate (₹) *</label><input class="fi" type="number" id="nm-rate" step="0.01" placeholder="उदा. 2001"></div>
+        </div>
+        <button class="btn-add" onclick="addMachine()">➕ मशीन Add करा</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⚙️ सध्याचे मशीन / वाहने</div>
+        <button onclick="renderMachines()" style="padding:6px 14px;background:#eff6ff;color:var(--primary);border:1px solid #bfdbfe;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">🔄 Refresh</button>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>मशीन नाव</th><th>Machine Type</th><th>Category</th><th>Avg</th><th>Rate</th><th>Action</th></tr></thead>
+      <tbody id="machinesTbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted);">लोड होत आहे...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ── PROJECTS ── -->
+  <div class="page" id="pg-projects">
+    <div class="card">
+      <div class="card-header"><div class="card-title">➕ नवीन प्रकल्प Add करा</div></div>
+      <div class="card-body">
+        <label class="fl">कामाचा प्रकार *</label>
+        <input class="fi" type="text" id="np-type" placeholder="उदा. मातीकाम, कालवा स्वच्छता">
+        <label class="fl">प्रकल्पाचे नाव *</label>
+        <input class="fi" type="text" id="np-name" placeholder="प्रकल्पाचे पूर्ण नाव टाका">
+        <button class="btn-add" onclick="addProject()">➕ प्रकल्प Add करा</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🏗 सध्याचे प्रकल्प</div>
+        <button onclick="renderProjects()" style="padding:6px 14px;background:#eff6ff;color:var(--primary);border:1px solid #bfdbfe;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">🔄 Refresh</button>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>कामाचा प्रकार</th><th>प्रकल्पाचे नाव</th><th>Action</th></tr></thead>
+      <tbody id="projectsTbody"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--muted);">लोड होत आहे...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ── STAFF ── -->
+  <div class="page" id="pg-staff">
+    <div class="card">
+      <div class="card-header"><div class="card-title">➕ नवीन कर्मचारी Add करा</div></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div><label class="fl">पूर्ण नाव *</label><input class="fi" type="text" id="ns-name" placeholder="पूर्ण नाव मराठीत"></div>
+          <div><label class="fl">भूमिका (Role) *</label>
+            <select class="fi" id="ns-role"><option value="Operator">Operator</option><option value="Driver">Driver</option></select>
+          </div>
+        </div>
+        <button class="btn-add" onclick="addStaff()">➕ कर्मचारी Add करा</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">👷 सध्याचे कर्मचारी</div>
+        <button onclick="renderStaff()" style="padding:6px 14px;background:#eff6ff;color:var(--primary);border:1px solid #bfdbfe;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;">🔄 Refresh</button>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>नाव</th><th>भूमिका</th><th>Action</th></tr></thead>
+      <tbody id="staffTbody"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--muted);">लोड होत आहे...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="delModal">
+  <div class="modal">
+    <h3>⚠️ Delete करायचे का?</h3>
+    <p id="delModalText"></p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeDelModal()">रद्द करा</button>
+      <button class="modal-confirm" id="delConfirmBtn">Delete करा</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzOhvYrDFrXe6vo7hjeMkuFH0GJ2exdLNfzy9ZyPASiCu-JcmXY7yHTxixNq29tACB5Jg/exec";
+let TOKEN, SUB_CODE, SUB_NAME;
+let configData = { machines: [], projects: [], staff: [] };
+let gpsRowsData = [];
+
+/* ── INIT ── */
+window.addEventListener("DOMContentLoaded", async () => {
+  TOKEN    = localStorage.getItem("token");
+  SUB_CODE = localStorage.getItem("subdivisionCode");
+  SUB_NAME = localStorage.getItem("subdivisionName");
+  if (!TOKEN || !SUB_CODE) { window.location.href = "login.html"; return; }
+  document.getElementById("subBanner").textContent = "📍 उपविभाग: " + (SUB_NAME || SUB_CODE);
+  setDefaultDates();
+  await loadConfig();
+  renderMachines(); renderProjects(); renderStaff();
+});
+
+function setDefaultDates() {
+  const today = new Date().toISOString().split("T")[0];
+  const first = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0];
+  ["m","g","a","p"].forEach(p => { document.getElementById(p+"_from").value = first; document.getElementById(p+"_to").value = today; });
+  document.getElementById("gpsDate").value = today;
+}
+
+async function loadConfig() {
+  try {
+    const res  = await fetch(API_URL + "?mode=config_all");
+    const data = await res.json();
+    configData.machines = (data.machines || []).filter(m => m["Subdivision Code"] === SUB_CODE);
+    configData.projects = (data.projects || []).filter(p => p["Subdivision Code"] === SUB_CODE);
+    configData.staff    = (data.staff    || []).filter(s => s["Subdivision Code"] === SUB_CODE);
+  } catch(e) { console.error(e); }
+}
+
+/* ── TABS ── */
+function switchTab(tab) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("pg-" + tab).classList.add("active");
+  document.getElementById("t-"  + tab).classList.add("active");
+}
+
+/* ── TOAST ── */
+function showToast(msg, type = "success") {
+  const existing = document.querySelector(".toast-msg");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.className = "toast-msg toast-" + type; el.innerText = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add("show"), 10);
+  setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 300); }, 4000);
+}
+
+/* ── REPORTS (same as existing) ── */
+async function downloadReport(type, prefix) {
+  const from = document.getElementById(prefix+"_from").value;
+  const to   = document.getElementById(prefix+"_to").value;
+  if (!from || !to) { alert("कृपया दिनांक निवडा."); return; }
+  const labels = { machine:"⚙️ मशीन अहवाल", gps:"📡 GPS अहवाल", attendance:"👷 हजेरी अहवाल", pending:"💰 प्रलंबित रक्कम अहवाल" };
+  const loader = document.getElementById("rptLoader");
+  document.getElementById("rptText").innerText = labels[type] + " तयार होत आहे... कृपया थोडा वेळ थांबा";
+  loader.classList.add("show");
+  document.querySelectorAll(".btn-dl").forEach(b => b.disabled = true);
+  try {
+    const url  = `${API_URL}?mode=report&type=${type}&from=${from}&to=${to}&subdivision=${SUB_CODE}&token=${TOKEN}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    loader.classList.remove("show");
+    document.querySelectorAll(".btn-dl").forEach(b => b.disabled = false);
+    if (data.error) { showToast("❌ " + data.error, "danger"); return; }
+    const bytes = atob(data.file), arr = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    const blob = new Blob([arr], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob); link.download = data.name || "Report.xlsx";
+    document.body.appendChild(link); link.click();
+    setTimeout(() => { URL.revokeObjectURL(link.href); document.body.removeChild(link); }, 2000);
+    showToast("✅ " + labels[type] + " download झाला!");
+  } catch(e) {
+    loader.classList.remove("show");
+    document.querySelectorAll(".btn-dl").forEach(b => b.disabled = false);
+    showToast("❌ Report generate करताना समस्या आली.", "danger");
+  }
+}
+
+/* ── GPS ── */
+async function loadGPSRows() {
+  const date = document.getElementById("gpsDate").value;
+  if (!date) { alert("दिनांक निवडा."); return; }
+  document.getElementById("gpsBody").innerHTML = '<div class="empty-state">लोड होत आहे...</div>';
+  try {
+    const res  = await fetch(`${API_URL}?mode=get_gps_rows&subdivision=${SUB_CODE}&token=${TOKEN}&date=${date}`);
+    const rows = await res.json();
+    if (rows.error) throw new Error(rows.error);
+    gpsRowsData = Array.isArray(rows) ? rows : [];
+    if (!gpsRowsData.length) { document.getElementById("gpsBody").innerHTML = `<div class="empty-state">या दिनांकासाठी (${date}) कोणत्याही नोंदी नाहीत.</div>`; return; }
+    const html = gpsRowsData.map((r, i) => `
+      <div class="gps-row">
+        <div style="flex:1;min-width:150px;">
+          <div class="gps-machine">${r.machine}</div>
+          <div class="gps-driver">चालक: ${r.driver || "—"}</div>
+          <div class="gps-dash">Dashboard: ${r.dashboard || 0}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">GPS तास/किमी</div>
+          <input class="gps-inp" type="number" step="0.1" id="gps-val-${i}" value="${r.gps || ""}" placeholder="0.0">
+        </div>
+      </div>`).join("");
+    document.getElementById("gpsBody").innerHTML = html + `<button class="btn-gps-save" id="gpsSaveBtn" onclick="saveGPS()">💾 GPS नोंदी Save करा</button>`;
+  } catch(e) { document.getElementById("gpsBody").innerHTML = `<div class="empty-state" style="color:var(--danger)">❌ ${e.message}</div>`; }
+}
+
+async function saveGPS() {
+  const updates = gpsRowsData
+    .map((r, i) => ({ ...r, gpsValue: parseFloat(document.getElementById(`gps-val-${i}`).value) || 0 }))
+    .filter(u => u.gpsValue > 0);
+  if (!updates.length) { showToast("❌ कोणतेही GPS values भरलेले नाहीत.", "danger"); return; }
+  const btn = document.getElementById("gpsSaveBtn");
+  btn.disabled = true; btn.textContent = "💾 Save होत आहे...";
+  try {
+    const res  = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({ mode:"update_gps", token:TOKEN, subdivision:SUB_CODE, updates }) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`✅ ${updates.length} GPS values save झाले!`);
+  } catch(e) { showToast("❌ " + e.message, "danger"); }
+  btn.disabled = false; btn.textContent = "💾 GPS नोंदी Save करा";
+}
+
+/* ── MACHINES ── */
+function renderMachines() {
+  const tbody = document.getElementById("machinesTbody");
+  if (!configData.machines.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">कोणत्याही मशीन नाहीत</td></tr>'; return; }
+  tbody.innerHTML = configData.machines.map((m, i) => `
+    <tr>
+      <td style="font-weight:700">${m["Machine Name"]}</td>
+      <td>${m["Machine Type"] || "—"}</td>
+      <td><span class="badge badge-${m["Category"]==="Vehicle"?"vehicle":"machine"}">${m["Category"]}</span></td>
+      <td>${m["Diesel Average"] || "—"}</td>
+      <td>₹${m["Use Rate"] || "—"}</td>
+      <td><button class="btn-del" onclick="confirmDelete('machine',${i},'${m["Machine Name"]}')">🗑 Delete</button></td>
+    </tr>`).join("");
+}
+
+async function addMachine() {
+  const name  = document.getElementById("nm-name").value.trim();
+  const type  = document.getElementById("nm-type").value.trim();
+  const cat   = document.getElementById("nm-category").value;
+  const avg   = document.getElementById("nm-avg").value;
+  const rate  = document.getElementById("nm-rate").value;
+  if (!name || !type || !avg || !rate) { showToast("❌ सर्व fields भरा.", "danger"); return; }
+  try {
+    const res  = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({ mode:"add_machine", token:TOKEN, subdivision:SUB_CODE, machineName:name, machineType:type, category:cat, dieselAverage:avg, useRate:rate }) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast("✅ " + name + " add झाले!");
+    ["nm-name","nm-type","nm-avg","nm-rate"].forEach(id => document.getElementById(id).value = "");
+    await loadConfig(); renderMachines();
+  } catch(e) { showToast("❌ " + e.message, "danger"); }
+}
+
+/* ── PROJECTS ── */
+function renderProjects() {
+  const tbody = document.getElementById("projectsTbody");
+  if (!configData.projects.length) { tbody.innerHTML = '<tr><td colspan="3" class="empty-state">कोणतेही प्रकल्प नाहीत</td></tr>'; return; }
+  tbody.innerHTML = configData.projects.map((p, i) => `
+    <tr>
+      <td>${p["Work Type"] || "—"}</td>
+      <td style="font-weight:600">${p["Project Name"]}</td>
+      <td><button class="btn-del" onclick="confirmDelete('project',${i},'${p["Project Name"]}')">🗑 Delete</button></td>
+    </tr>`).join("");
+}
+
+async function addProject() {
+  const type = document.getElementById("np-type").value.trim();
+  const name = document.getElementById("np-name").value.trim();
+  if (!type || !name) { showToast("❌ सर्व fields भरा.", "danger"); return; }
+  try {
+    const res  = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({ mode:"add_project", token:TOKEN, subdivision:SUB_CODE, projectName:name, workType:type }) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast("✅ प्रकल्प add झाला!");
+    ["np-type","np-name"].forEach(id => document.getElementById(id).value = "");
+    await loadConfig(); renderProjects();
+  } catch(e) { showToast("❌ " + e.message, "danger"); }
+}
+
+/* ── STAFF ── */
+function renderStaff() {
+  const tbody = document.getElementById("staffTbody");
+  if (!configData.staff.length) { tbody.innerHTML = '<tr><td colspan="3" class="empty-state">कोणतेही कर्मचारी नाहीत</td></tr>'; return; }
+  tbody.innerHTML = configData.staff.map((s, i) => `
+    <tr>
+      <td style="font-weight:600">${s["Name"]}</td>
+      <td><span class="badge badge-${s["Role"]==="Operator"?"operator":"driver"}">${s["Role"]}</span></td>
+      <td><button class="btn-del" onclick="confirmDelete('staff',${i},'${s["Name"]}')">🗑 Delete</button></td>
+    </tr>`).join("");
+}
+
+async function addStaff() {
+  const name = document.getElementById("ns-name").value.trim();
+  const role = document.getElementById("ns-role").value;
+  if (!name) { showToast("❌ नाव भरा.", "danger"); return; }
+  try {
+    const res  = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({ mode:"add_staff", token:TOKEN, subdivision:SUB_CODE, name, role }) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast("✅ " + name + " add झाले!");
+    document.getElementById("ns-name").value = "";
+    await loadConfig(); renderStaff();
+  } catch(e) { showToast("❌ " + e.message, "danger"); }
+}
+
+/* ── DELETE ── */
+function confirmDelete(type, idx, name) {
+  const labels = { machine:"मशीन", project:"प्रकल्प", staff:"कर्मचारी" };
+  document.getElementById("delModalText").textContent = `"${name}" हा/ही ${labels[type]} delete करायचा का? हे पूर्ववत होणार नाही.`;
+  document.getElementById("delModal").classList.add("open");
+  document.getElementById("delConfirmBtn").onclick = () => doDelete(type, idx, name);
+}
+function closeDelModal() { document.getElementById("delModal").classList.remove("open"); }
+
+async function doDelete(type, idx, name) {
+  closeDelModal();
+  const modeMap = { machine:"delete_machine", project:"delete_project", staff:"delete_staff" };
+  const keyMap  = { machine:"machineName",    project:"projectName",    staff:"name" };
+  try {
+    const body = { mode: modeMap[type], token: TOKEN, subdivision: SUB_CODE };
+    body[keyMap[type]] = name;
+    const res  = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`✅ "${name}" delete झाले!`);
+    await loadConfig();
+    if (type === "machine") renderMachines();
+    if (type === "project") renderProjects();
+    if (type === "staff")   renderStaff();
+  } catch(e) { showToast("❌ " + e.message, "danger"); }
+}
+
+/* ── LOGOUT ── */
+function logout() {
+  if (confirm("लॉगआउट करायचे का?")) {
+    ["token","subdivisionCode","subdivisionName","role"].forEach(k => localStorage.removeItem(k));
+    window.location.href = "login.html";
+  }
+}
+</script>
+</body>
+</html>
