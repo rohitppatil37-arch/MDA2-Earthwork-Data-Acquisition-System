@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fuel Performance Dashboard | यांत्रिकी विभाग</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--primary:#1e40af;--pl:#2563eb;--bg:#f3f4f6;--card:#fff;--border:#e5e7eb;--danger:#b91c1c;--success:#059669;--muted:#6b7280;--amber:#d97706;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Noto Sans Devanagari",system-ui,sans-serif;background:var(--bg);padding:0 0 40px;}
+
+/* HEADER */
+.gov-header{text-align:center;padding:14px 20px;border-bottom:3px solid var(--primary);background:white;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:22px;}
+.gov-logos{display:flex;justify-content:center;align-items:center;gap:18px;margin-bottom:10px;}
+.center-logo{width:80px;}.side-logo{width:66px;}
+.gov-subtitle{font-size:13px;color:var(--muted);margin-bottom:4px;}
+.gov-title{font-size:22px;font-weight:700;color:var(--primary);}
+
+/* CONTAINER */
+.container{max-width:1100px;margin:0 auto;padding:0 16px;}
+
+/* BACK BTN */
+.back-btn{display:inline-flex;align-items:center;gap:8px;background:white;border:1.5px solid var(--border);padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;text-decoration:none;margin-bottom:18px;transition:0.2s;}
+.back-btn:hover{border-color:var(--primary);color:var(--primary);}
+
+/* FILTERS CARD */
+.filter-card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid var(--border);margin-bottom:20px;}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;align-items:end;}
+.filter-grid label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;}
+.filter-grid select,.filter-grid input{width:100%;padding:9px 10px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;font-family:inherit;background:white;transition:0.2s;}
+.filter-grid select:focus,.filter-grid input:focus{outline:none;border-color:var(--pl);}
+.btn-filter{width:100%;padding:10px;background:var(--primary);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit;transition:0.2s;}
+.btn-filter:hover{background:var(--pl);}
+
+/* INFO BOX */
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:11px 16px;margin-bottom:20px;font-size:13px;color:#1d4ed8;font-weight:500;}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid var(--border);text-align:center;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.stat-card.blue::before{background:var(--pl);}
+.stat-card.green::before{background:var(--success);}
+.stat-card.amber::before{background:var(--amber);}
+.stat-card.purple::before{background:#7c3aed;}
+.stat-card.red::before{background:var(--danger);}
+.stat-icon{font-size:28px;margin-bottom:8px;}
+.stat-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;}
+.stat-val{font-size:30px;font-weight:700;color:#1e293b;}
+.stat-unit{font-size:12px;color:var(--muted);margin-top:3px;}
+.stat-status{font-size:12px;font-weight:700;margin-top:6px;}
+
+/* STATUS COLORS */
+.good{color:var(--success);}
+.warn{color:var(--amber);}
+.bad{color:var(--danger);}
+
+/* CHART GRID */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.chart-card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid var(--border);}
+.chart-title{font-size:14px;font-weight:700;color:var(--primary);margin-bottom:14px;}
+.chart-wrap{position:relative;height:220px;}
+
+/* LOADER */
+.loader{display:none;text-align:center;padding:30px;color:var(--primary);font-weight:600;}
+.loader .spin{width:32px;height:32px;border:3px solid #bfdbfe;border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* YANTRIKA */
+#yantrikaFab{position:fixed;bottom:20px;right:16px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#fbbf24);border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 16px rgba(245,158,11,0.5);z-index:400;display:flex;align-items:center;justify-content:center;animation:fabPulse 2.5s ease-in-out infinite;transition:transform 0.2s;}
+#yantrikaFab:hover{transform:scale(1.08);}
+@keyframes fabPulse{0%,100%{box-shadow:0 4px 16px rgba(245,158,11,0.5);}50%{box-shadow:0 6px 24px rgba(245,158,11,0.75);}}
+#yantrikaPanel{position:fixed;bottom:92px;right:14px;width:min(330px,calc(100vw - 28px));background:white;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.18);border:1px solid var(--border);z-index:401;display:none;flex-direction:column;overflow:hidden;max-height:480px;}
+#yantrikaPanel.open{display:flex;}
+.yp-header{background:linear-gradient(135deg,#1e3a8a,var(--primary));padding:13px 15px;display:flex;align-items:center;gap:10px;}
+.yp-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.yp-name{color:white;font-weight:700;font-size:13px;}
+.yp-status{color:rgba(255,255,255,0.65);font-size:11px;}
+.yp-close{margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.65);font-size:20px;cursor:pointer;}
+.yp-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.yp-msg{max-width:88%;padding:9px 12px;border-radius:14px;font-size:12px;line-height:1.6;}
+.yp-msg.bot{background:#f1f5f9;color:#1e293b;align-self:flex-start;border-bottom-left-radius:4px;}
+.yp-msg.user{background:var(--primary);color:white;align-self:flex-end;border-bottom-right-radius:4px;}
+.yp-msg.typing{background:#f1f5f9;align-self:flex-start;}
+.typing-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:#94a3b8;margin:0 2px;animation:typingD 1.2s ease-in-out infinite;}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes typingD{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.yp-quick{padding:7px 10px;display:flex;gap:4px;flex-wrap:wrap;border-top:1px solid var(--border);}
+.yp-qbtn{font-size:10px;padding:4px 8px;border-radius:12px;border:1px solid var(--border);background:white;cursor:pointer;color:var(--primary);font-family:inherit;}
+.yp-input-row{padding:9px 11px;border-top:1px solid var(--border);display:flex;gap:7px;}
+.yp-input{flex:1;padding:7px 11px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-family:inherit;outline:none;}
+.yp-input:focus{border-color:var(--primary);}
+.yp-send{width:34px;height:34px;border-radius:50%;background:var(--primary);border:none;color:white;font-size:14px;cursor:pointer;flex-shrink:0;}
+
+/* VOICE BAR */
+#voiceBar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--primary);color:white;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;display:none;align-items:center;gap:10px;z-index:600;box-shadow:0 4px 16px rgba(30,64,175,0.4);max-width:90%;}
+#voiceBar.show{display:flex;}
+.vb-waves{display:flex;gap:3px;align-items:center;}
+.vb-w{width:3px;background:#93c5fd;border-radius:2px;animation:vbWave 0.8s ease-in-out infinite;}
+.vb-w:nth-child(1){height:8px;}.vb-w:nth-child(2){height:16px;animation-delay:0.1s;}.vb-w:nth-child(3){height:11px;animation-delay:0.2s;}.vb-w:nth-child(4){height:18px;animation-delay:0.15s;}.vb-w:nth-child(5){height:8px;animation-delay:0.05s;}
+@keyframes vbWave{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.7);}}
+
+@media(max-width:700px){.charts-grid{grid-template-columns:1fr;}.stats-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<div class="gov-header">
+  <div class="gov-logos">
+    <img src="left-logo.png" class="side-logo" alt="">
+    <img src="main-logo.png" class="center-logo" alt="">
+    <img src="right-logo.png" class="side-logo" alt="">
+  </div>
+  <div class="gov-subtitle">मा. कार्यकारी अभियंता यांत्रिकी विभाग (को.प्र), अलोरे अंतर्गत</div>
+  <div class="gov-title">यांत्रिकी विभाग मातीकाम माहिती प्रणाली</div>
+</div>
+
+<div class="container">
+  <a class="back-btn" href="index.html">⬅ माहिती नोंदणी फॉर्मवर जा</a>
+
+  <div class="info-box">👉 उपविभाग, सयंत्र व दिनांक निवडून इंधन कार्यक्षमता विश्लेषण पहा.</div>
+
+  <!-- FILTERS -->
+  <div class="filter-card">
+    <div class="filter-grid">
+      <div>
+        <label>उपविभाग</label>
+        <select id="subdivision" onchange="loadMachines()"><option value="">उपविभाग निवडा</option></select>
+      </div>
+      <div>
+        <label>प्रकार</label>
+        <select id="category" onchange="loadMachines()"><option value="">प्रकार निवडा</option><option value="Machine">Machine</option><option value="Vehicle">Vehicle</option></select>
+      </div>
+      <div>
+        <label>सयंत्र</label>
+        <select id="machine"><option value="">सयंत्र निवडा</option></select>
+      </div>
+      <div>
+        <label>पासून दिनांक</label>
+        <input type="date" id="fromDate">
+      </div>
+      <div>
+        <label>पर्यंत दिनांक</label>
+        <input type="date" id="toDate">
+      </div>
+      <div>
+        <button class="btn-filter" onclick="loadPerformance()">📊 विश्लेषण पहा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div class="loader" id="loader">
+    <div class="spin"></div>
+    <div>डेटा लोड होत आहे...</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid" id="statsGrid" style="display:none;">
+    <div class="stat-card blue">
+      <div class="stat-icon">📊</div>
+      <div class="stat-label">Expected Average</div>
+      <div class="stat-val" id="statExpected">—</div>
+      <div class="stat-unit" id="statExpectedUnit">L/hr</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">⛽</div>
+      <div class="stat-label">Actual Average</div>
+      <div class="stat-val" id="statActual">—</div>
+      <div class="stat-unit" id="statActualUnit">L/hr</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-icon">⏱</div>
+      <div class="stat-label">एकूण तास / किमी</div>
+      <div class="stat-val" id="statHours">—</div>
+      <div class="stat-unit">hrs/km</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">🪣</div>
+      <div class="stat-label">एकूण डिझेल</div>
+      <div class="stat-val" id="statDiesel">—</div>
+      <div class="stat-unit">लिटर</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-label">Status</div>
+      <div class="stat-val" id="statStatus" style="font-size:20px;">—</div>
+      <div class="stat-unit" id="statStatusSub"></div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-grid" id="chartsGrid" style="display:none;">
+    <div class="chart-card">
+      <div class="chart-title">📊 Expected vs Actual Average</div>
+      <div class="chart-wrap"><canvas id="effChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">⛽ डिझेल वापर</div>
+      <div class="chart-wrap"><canvas id="dieselChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- VOICE BAR -->
+<div id="voiceBar">
+  <div class="vb-waves"><div class="vb-w"></div><div class="vb-w"></div><div class="vb-w"></div><div class="vb-w"></div><div class="vb-w"></div></div>
+  <span id="voiceBarText">बोलत आहे...</span>
+</div>
+
+<!-- YANTRIKA FAB -->
+<button id="yantrikaFab" onclick="toggleYantrika()">👩‍💼</button>
+<div id="yantrikaPanel">
+  <div class="yp-header">
+    <div class="yp-avatar">👩‍💼</div>
+    <div><div class="yp-name">यंत्रिका</div><div class="yp-status">⚡ AI सहाय्यक</div></div>
+    <button class="yp-close" onclick="toggleYantrika()">✕</button>
+  </div>
+  <div class="yp-messages" id="ypMessages">
+    <div class="yp-msg bot">नमस्कार! मी यंत्रिका. Dashboard वरील performance बद्दल काही प्रश्न असतील तर विचारा! 🙏</div>
+  </div>
+  <div class="yp-quick">
+    <button class="yp-qbtn" onclick="ypQuick('या मशीनची performance कशी आहे?')">📊 Performance</button>
+    <button class="yp-qbtn" onclick="ypQuick('diesel जास्त होतोय का?')">⛽ Diesel</button>
+    <button class="yp-qbtn" onclick="ypQuick('सुधारणा कशी करावी?')">💡 सुधारणा</button>
+  </div>
+  <div class="yp-input-row">
+    <input type="text" class="yp-input" id="ypInput" placeholder="प्रश्न विचारा..." onkeydown="if(event.key==='Enter')ypSend()">
+    <button class="yp-send" onclick="ypSend()">➤</button>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbzOhvYrDFrXe6vo7hjeMkuFH0GJ2exdLNfzy9ZyPASiCu-JcmXY7yHTxixNq29tACB5Jg/exec";
+let machines = [], subs = [], chart1, chart2;
+let currentRow = null;
+
+/* ── VOICE ── */
+const Voice = (() => {
+  const synth = window.speechSynthesis;
+  let voice = null;
+  function init() {
+    const load = () => { const vs = synth.getVoices(); voice = vs.find(v=>v.lang==="hi-IN")||vs.find(v=>v.lang.startsWith("hi"))||vs[0]||null; };
+    load(); if (synth.onvoiceschanged!==undefined) synth.onvoiceschanged=load;
+  }
+  function speak(text) {
+    if (!synth||!text) return; synth.cancel();
+    const utt=new SpeechSynthesisUtterance(text); utt.voice=voice; utt.lang="hi-IN"; utt.rate=0.9; utt.pitch=1.1;
+    utt.onstart=()=>{const b=document.getElementById("voiceBar"),t=document.getElementById("voiceBarText");if(b)b.classList.add("show");if(t)t.textContent=text;};
+    utt.onend=()=>{const b=document.getElementById("voiceBar");if(b)b.classList.remove("show");};
+    synth.speak(utt);
+  }
+  return { init, speak };
+})();
+
+/* ── INIT ── */
+window.addEventListener("DOMContentLoaded", async () => {
+  Voice.init();
+  await loadConfig();
+  setDefaultDates();
+});
+
+async function loadConfig() {
+  const res  = await fetch(API + "?mode=config_all");
+  const data = await res.json();
+  machines = data.machines || [];
+  subs     = data.subdivisions || [];
+  const sel = document.getElementById("subdivision");
+  subs.forEach(s => { const o=document.createElement("option"); o.value=s["Subdivision Code"]; o.textContent=s["Subdivision Name"]; sel.appendChild(o); });
+}
+
+function setDefaultDates() {
+  const today = new Date(), first = new Date(today.getFullYear(), today.getMonth(), 1);
+  document.getElementById("fromDate").value = first.toISOString().split("T")[0];
+  document.getElementById("toDate").value   = today.toISOString().split("T")[0];
+}
+
+function loadMachines() {
+  const sub = document.getElementById("subdivision").value;
+  const cat = document.getElementById("category").value;
+  const sel = document.getElementById("machine");
+  sel.innerHTML = '<option value="">सयंत्र निवडा</option>';
+  machines.filter(m => m["Subdivision Code"]===sub && (!cat || m["Category"]===cat))
+          .forEach(m => { const o=document.createElement("option"); o.value=o.textContent=m["Machine Name"]; sel.appendChild(o); });
+}
+
+async function loadPerformance() {
+  const sub     = document.getElementById("subdivision").value;
+  const machine = document.getElementById("machine").value;
+  const from    = document.getElementById("fromDate").value;
+  const to      = document.getElementById("toDate").value;
+  if (!sub || !machine) { alert("कृपया उपविभाग व सयंत्र निवडा."); return; }
+
+  document.getElementById("loader").style.display = "block";
+  document.getElementById("statsGrid").style.display = "none";
+  document.getElementById("chartsGrid").style.display = "none";
+
+  try {
+    const res  = await fetch(`${API}?mode=fuel_dashboard&subdivision=${sub}&from=${from}&to=${to}`);
+    const data = await res.json();
+    document.getElementById("loader").style.display = "none";
+    const row = data.find(d => d.machine === machine);
+    if (!row) { alert("डेटा उपलब्ध नाही."); return; }
+    currentRow = row;
+    updateStats(row);
+    drawCharts(row);
+    document.getElementById("statsGrid").style.display = "grid";
+    document.getElementById("chartsGrid").style.display = "grid";
+    announcePerformance(row);
+  } catch(e) {
+    document.getElementById("loader").style.display = "none";
+    alert("डेटा लोड करताना समस्या आली.");
+  }
+}
+
+function updateStats(row) {
+  const unit = row.category === "Machine" ? "L/hr" : "km/L";
+  document.getElementById("statExpected").textContent    = row.expected.toFixed(2);
+  document.getElementById("statActual").textContent      = row.actual.toFixed(2);
+  document.getElementById("statExpectedUnit").textContent = unit;
+  document.getElementById("statActualUnit").textContent   = unit;
+  document.getElementById("statHours").textContent       = row.hours.toFixed(1);
+  document.getElementById("statDiesel").textContent      = row.diesel.toFixed(1);
+
+  let statusText, statusSub, cls;
+  if (row.category === "Machine") {
+    if (row.actual > row.expected * 1.1)     { statusText = "❌ जास्त";     statusSub = "डिझेल खूप जास्त";      cls = "bad"; }
+    else if (row.actual > row.expected)       { statusText = "⚠️ थोडे जास्त"; statusSub = "थोडा जास्त वापर";   cls = "warn"; }
+    else                                       { statusText = "✅ चांगले";    statusSub = "Average मध्ये";       cls = "good"; }
+  } else {
+    if (row.actual < row.expected * 0.9)     { statusText = "❌ कमी";       statusSub = "Mileage कमी आहे";     cls = "bad"; }
+    else if (row.actual < row.expected)       { statusText = "⚠️ थोडे कमी";  statusSub = "Mileage थोडे कमी";   cls = "warn"; }
+    else                                       { statusText = "✅ चांगले";    statusSub = "Average मध्ये";       cls = "good"; }
+  }
+  const statusEl  = document.getElementById("statStatus");
+  const statusSEl = document.getElementById("statStatusSub");
+  statusEl.textContent  = statusText;
+  statusSEl.textContent = statusSub;
+  statusEl.className    = "stat-val " + cls;
+}
+
+function announcePerformance(row) {
+  const unit = row.category === "Machine" ? "लिटर प्रति तास" : "किलोमीटर प्रति लिटर";
+  const isGood = row.category === "Machine" ? row.actual <= row.expected * 1.1 : row.actual >= row.expected * 0.9;
+  const msg = `${row.machine} चा actual average ${row.actual.toFixed(2)} ${unit} आहे. Expected average ${row.expected.toFixed(2)} ${unit} आहे. Performance ${isGood ? "चांगली आहे." : "सुधारण्याची आवश्यकता आहे."}`;
+  Voice.speak(msg);
+}
+
+function drawCharts(row) {
+  if (chart1) chart1.destroy();
+  if (chart2) chart2.destroy();
+  const unit = row.category === "Machine" ? "L/hr" : "km/L";
+  const actColor = row.category === "Machine" ?
+    (row.actual > row.expected * 1.1 ? "#dc2626" : row.actual > row.expected ? "#d97706" : "#059669") :
+    (row.actual < row.expected * 0.9 ? "#dc2626" : row.actual < row.expected ? "#d97706" : "#059669");
+
+  chart1 = new Chart(document.getElementById("effChart"), {
+    type: "bar",
+    data: { labels: ["Expected "+unit, "Actual "+unit], datasets: [{ data: [row.expected, row.actual], backgroundColor: ["#1e40af", actColor], borderRadius: 8 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}} }
+  });
+
+  chart2 = new Chart(document.getElementById("dieselChart"), {
+    type: "doughnut",
+    data: { labels: ["डिझेल वापरले", "बाकी (Est.)"], datasets: [{ data: [row.diesel, Math.max(0, row.expected * row.hours - row.diesel)], backgroundColor: ["#1e40af","#e0e7ff"], borderWidth: 0 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:"bottom", labels:{font:{size:11}} } } }
+  });
+}
+
+/* ── YANTRIKA ── */
+let ypOpen = false;
+function toggleYantrika() { ypOpen=!ypOpen; document.getElementById("yantrikaPanel").classList.toggle("open",ypOpen); }
+function ypQuick(q) { document.getElementById("ypInput").value=q; ypSend(); }
+
+async function ypSend() {
+  const inp = document.getElementById("ypInput");
+  const q   = inp.value.trim();
+  if (!q) return;
+  inp.value = "";
+  ypAddMsg(q,"user");
+  ypAddTyping();
+
+  const sub     = document.getElementById("subdivision").value;
+  const machine = document.getElementById("machine").value;
+  const ctx     = currentRow ? { machine: currentRow.machine, category: currentRow.category, diesel: currentRow.diesel, hours: currentRow.hours, expected: currentRow.expected } : {};
+
+  try {
+    const res  = await fetch(API, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({ mode:"yantrika_chat", question:q, context:ctx, subdivision:sub }) });
+    const data = await res.json();
+    ypRemoveTyping();
+    const answer = data.answer || "माफ करा, उत्तर देता आले नाही.";
+    ypAddMsg(answer,"bot");
+    Voice.speak(answer);
+  } catch(e) { ypRemoveTyping(); ypAddMsg("Network समस्या आली.","bot"); }
+}
+
+function ypAddMsg(text,type) {
+  const msgs=document.getElementById("ypMessages");
+  const div=document.createElement("div"); div.className="yp-msg "+type; div.innerHTML=text.replace(/\n/g,"<br>");
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+}
+function ypAddTyping() {
+  const msgs=document.getElementById("ypMessages");
+  const div=document.createElement("div"); div.className="yp-msg typing"; div.id="ypTyping";
+  div.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+}
+function ypRemoveTyping() { document.getElementById("ypTyping")?.remove(); }
+</script>
+</body>
+</html>
